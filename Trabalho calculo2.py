@@ -1,0 +1,77 @@
+import scipy.integrate as spi
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Função a ser integrada
+def integrand(x, y, z):
+    return 1  # f(x,y,z) = 1 para calcular volume
+
+# Função principal
+print("=-=" * 28)
+print("  Este programa calcula o volume de uma esfera de raio r usando integração tripla.")
+print("=-=" * 28)
+while True:
+    try:
+        # Solicitando o raio da esfera ao usuário
+        r = float(input("\nDigite o raio da esfera (ou '000' para sair): "))
+        if r < 0:
+            print("O raio deve ser um número positivo.")
+            continue
+        elif r == 000:
+            print("Saindo...")
+            break
+    except ValueError:
+        print("Entrada inválida. Digite um número positivo ou '000' para sair.")
+        continue
+
+    # Calculando a integral tripla
+    volume, error = spi.tplquad(integrand, -r, r, 
+                                lambda x: -np.sqrt(r**2 - x**2), lambda x: np.sqrt(r**2 - x**2), 
+                                lambda x, y: -np.sqrt(r**2 - x**2 - y**2), lambda x, y: np.sqrt(r**2 - x**2 - y**2))
+
+    # Volume teórico
+    volume_teorico = (4/3) * np.pi * r**3
+
+    print("\n")
+    print("=-=" * 13)
+    print(f"Volume da esfera de raio {r}: {volume:.4f}")
+    print(f"Erro estimado: {error:.4e}")
+    print(f"Volume teórico: {volume_teorico:.4f}")
+    print("=-=" * 13)
+    print("\n")
+
+    # Criando o gráfico
+    fig = plt.figure(figsize=(10, 5))
+    
+    # Gráfico 3D da esfera
+    ax = fig.add_subplot(121, projection='3d')
+    u = np.linspace(0, 2 * np.pi, 100)
+    v = np.linspace(0, np.pi, 100)
+    x = r * np.outer(np.cos(u), np.sin(v))
+    y = r * np.outer(np.sin(u), np.sin(v))
+    z = r * np.outer(np.ones(np.size(u)), np.cos(v))
+    
+    ax.plot_surface(x, y, z, color='b', alpha=0.6)
+    ax.set_title('Esfera de raio r')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    
+    # Texto com resultados
+    ax2 = fig.add_subplot(122)
+    ax2.axis('off')
+    textstr = '\n'.join((
+        f'Volume calculado: {volume:.4f}',
+        f'Erro estimado: {error:.4e}',
+        f'Volume teórico: {volume_teorico:.4f}'
+    ))
+    ax2.text(0.5, 0.5, textstr, transform=ax2.transAxes, fontsize=14,
+             verticalalignment='center', horizontalalignment='center')
+
+    plt.show()
+
+    cont = input("Deseja calcular o volume para outro raio? (S/N): ")
+    if cont.lower() != 's':
+        print("Saindo...")
+        break
